@@ -17,7 +17,7 @@ Scrapes historical exchange rates from XE.com and exports to CSV.
 
 ## Installation
 
-```bash
+
 git clone https://github.com/dhanushramudri/ne.com-scraping.git
 cd ne.com-scraping
 
