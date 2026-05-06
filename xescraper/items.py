@@ -2,8 +2,8 @@ import scrapy
 
 class XeRawItem(scrapy.Item):
     date = scrapy.Field()
-    currency = scrapy.Field()         # will always be 'USD'
-    currency_name = scrapy.Field()    # 'United States Dollar' from the table, if present
-    rate = scrapy.Field()             # source - USD
-    inverse_rate = scrapy.Field()     # USD - source
-    source_country = scrapy.Field()   # one of GBP, AUD, EUR, CAD
+    currency = scrapy.Field()         # Target currency (ANY currency - fiat, crypto, metals)
+    currency_name = scrapy.Field()    # Full name from table
+    rate = scrapy.Field()             # source → target rate
+    inverse_rate = scrapy.Field()     # target → source rate
+    source_country = scrapy.Field()   # Source currency (GBP, AUD, EUR, USD, etc.)

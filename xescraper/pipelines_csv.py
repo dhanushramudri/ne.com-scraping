@@ -47,8 +47,8 @@ class CSVPipeline:
     def process_item(self, item, spider):
         """Write item to CSV file."""
         currency = (item.get("currency") or "").upper()
-        if currency != "USD":
-            spider.logger.debug(f"Skipping non-USD row: {item}")
+        if not currency:
+            spider.logger.debug(f"Skipping row with no currency: {item}")
             return item
 
         source = (item.get("source_country") or "").upper()

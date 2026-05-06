@@ -14,10 +14,9 @@ class XeSpider(scrapy.Spider):
     name = "xe.com"
     allowed_domains = ["xe.com"]
 
-    # Only these sources; no 'USD' as a source
-    source_country = ["GBP", "AUD", "EUR", "CAD"]
+    # Source currencies - scrape rates FROM these currencies
+    source_country = ["GBP", "AUD", "EUR", "CAD", "USD", "JPY", "CHF", "INR", "CNY", "SEK", "NOK", "DKK", "SGD", "HKD", "MXN", "ZAR", "THB", "BRL", "KRW", "IDR", "PHP", "VND", "MYR", "AED", "SAR", "TRY", "RUB"]
 
-    # Let Scrapy pass -a start=... -a end=... into __init__
     def __init__(self, start=None, end=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Default if not provided (you can adjust)
@@ -54,33 +53,39 @@ class XeSpider(scrapy.Spider):
         date = response.meta["date"]
         source_country = response.meta["source_country"]
 
-        # Grab the data table rows
+        # Grab ALL data table rows
         rows = response.css("div#table-section table tbody tr")
         if not rows:
             self.logger.error(f"No rows found in {response.url}")
             return
 
-        # Only the USD row
+        extracted_count = 0
+
+        # Extract ALL currencies (not just USD)
         for row in rows:
             currency = (row.css("th[scope='row'] a::text").get() or "").strip()
-            if currency != "USD":
-                continue
+            if not currency:
+                continue  # Skip rows without currency code
 
             currency_name = (row.css("td:nth-child(2)::text").get() or "").strip()
             rate = (row.css("td:nth-child(3)::text").get() or "").strip()
             inverse_rate = (row.css("td:nth-child(4)::text").get() or "").strip()
 
             self.logger.info(
-                f"Extracted [{source_country}/USD] {date}: {currency_name}, rate={rate}, inverse={inverse_rate}"
+                f"Extracted [{source_country}/{currency}] {date}: {currency_name}, rate={rate}, inverse={inverse_rate}"
             )
 
             item = XeRawItem()
-            item["currency"] = "USD"
+            item["currency"] = currency
             item["currency_name"] = currency_name
-            item["rate"] = rate                # source -> USD
-            item["inverse_rate"] = inverse_rate  # USD -> source
+            item["rate"] = rate                # source -> target
+            item["inverse_rate"] = inverse_rate  # target -> source
             item["date"] = date
             item["source_country"] = source_country
 
+            # Only yield if we have both currency and rate
             if item["currency"] and item["rate"]:
+                extracted_count += 1
                 yield item
+
+        self.logger.info(f"✅ Extracted {extracted_count} currencies for {source_country} on {date}")
